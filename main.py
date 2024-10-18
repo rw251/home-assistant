@@ -26,6 +26,7 @@ def on_message(client, userdata, msg):
             config = json.loads(config_file.read_text())
             humidity = items["humidity"]
             temperature = items["temperature"]
+            battery = items["battery"]
             dew_point = (1/((1/273) - log((0.611 * exp(5423 * ((1/273) - (1/(273+temperature)))))*humidity/61.1)/5423)) - 273;  
             isoTimeString = datetime.now().isoformat()[0:19] 
             device = msg.topic.split('/')[-1]
@@ -33,7 +34,7 @@ def on_message(client, userdata, msg):
             if device in config["mapping"]:
                 location = config["mapping"][device]
             with open(data_file, 'a') as f:
-                f.write(f"""{isoTimeString}\t{location}\t{device}\t{temperature}\t{humidity}\t{dew_point}\n""")
+                f.write(f"""{isoTimeString}\t{location}\t{device}\t{temperature}\t{humidity}\t{dew_point}\t{battery}\n""")
         except Exception as e:
             print(e)
 
