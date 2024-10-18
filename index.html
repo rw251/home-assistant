@@ -1,17 +1,121 @@
 <html>
 
 <head>
+    <style>
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+        }
+      </style>
 </head>
 
 <body>
-    <table id="results"></table>
+    <canvas id="myChart"></canvas>
+    <!-- <table id="results"></table> -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script type="text/javascript">
+        const ctx = document.getElementById('myChart');
+        var rooms = {};
         fetch('data.txt').then(x => x.text()).then(data => {
-            document.getElementById("results").innerHTML = '<tr><th>Date time</th><th>Location</th><th>Temperature</th><th>Dew point</th><th>Battery</th></tr>' + data.split('\n').filter(x => x.trim().length > 5).reverse().map(line => {
-                const [dt, loc, col, temp, hum, dp, battery] = line.split('\t');
-                return `<tr><td>${dt}</td><td>${loc}</td><td>${temp}</td><td>${Math.round(dp * 100) / 100}&degC</td><td>${battery ? `${battery}%` : '?'}</td></tr>`;
-            }).join('\n');
+            data
+                .split('\n')
+                .filter(x => x.trim().length > 5)
+                .forEach(line => {
+                    const [dt, loc, col, temp, hum, dp, battery] = line.split('\t');
+                    if(!rooms[loc]) {
+                        rooms[loc] = Object.keys(rooms).length + 1;
+                        chartConfig.data.datasets.push({label: loc, data: []})
+                    }
+                    chartConfig.data.datasets[rooms[loc]-1].data.push({x: dt, y: dp});
+                })
+            new Chart(ctx, chartConfig);
         });
+
+        var chartConfig = {
+                type: 'line',
+                data: {
+                    datasets: [],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    interaction: {
+                    intersect: false,
+                    mode: 'index',
+                    axis: 'x',
+                    },
+                    stacked: true,
+                    responsive: true,
+                    spanGaps: true,
+                    elements: {
+                    point: {
+                        radius: 0,
+                    },
+                    },
+                    plugins: {
+                    zoom: {
+                        limits: {
+                        x: { min: 'original', max: 'original' },
+                        },
+                        pan: {
+                        enabled: true,
+                        mode: 'x',
+                        onPanStart: (e) => {
+                            if (e.chart.getZoomLevel() <= 1) return false;
+                        },
+                        },
+                        zoom: {
+                        wheel: {
+                            enabled: true,
+                        },
+                        pinch: {
+                            enabled: true,
+                        },
+                        mode: 'x',
+                        },
+                    },
+                    },
+                    scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                        displayFormats: {
+                            millisecond: 'dd HH',
+                            second: 'dd HH',
+                            minute: 'dd HH',
+                            hour: 'dd HH',
+                            day: 'MMM dd',
+                            week: 'MMM dd',
+                            month: 'MMM',
+                            quarter: 'MMM',
+                            year: 'yyyy MMM',
+                        },
+                        },
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        stacked: false,
+                        position: 'left',
+                        min: 0,
+                        title: {
+                        text: 'C',
+                        display: true,
+                        },
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: false,
+                        stacked: true,
+                        position: 'right',
+                        min: 0,
+                    },
+                    },
+                },
+            }
     </script>
 </body>
 
