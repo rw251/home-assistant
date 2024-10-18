@@ -1,0 +1,18 @@
+<html>
+
+<head>
+</head>
+
+<body>
+    <table id="results"></table>
+    <script type="text/javascript">
+        fetch('data.txt').then(x => x.text()).then(data => {
+            document.getElementById("results").innerHTML = '<tr><th>Date time</th><th>Location</th><th>Temperature</th><th>Dew point</th></tr>' + data.split('\n').filter(x => x.trim().length > 5).reverse().map(line => {
+                const [dt, loc, col, temp, hum, dp] = line.split('\t');
+                return `<tr><td>${dt}</td><td>${loc}</td><td>${temp}</td><td>${Math.round(dp * 100) / 100}&degC</td></tr>`;
+            }).join('\n');
+        });
+    </script>
+</body>
+
+</html>
